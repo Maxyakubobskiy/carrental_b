@@ -48,7 +48,6 @@ public class AuthController {
 
     @PostMapping("/registration")
     public ResponseEntity<?> registerUser(@RequestBody RegisterDto registerDto) {
-        System.out.println("1");
         Map<String, String> errors = new HashMap<>();
 
         if (userService.isUsernameAlreadyTaken(registerDto.getUsername())) {
