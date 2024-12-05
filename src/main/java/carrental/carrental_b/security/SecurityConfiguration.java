@@ -78,6 +78,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/updateUser").fullyAuthenticated()
                         .requestMatchers("/api/deleteUser").fullyAuthenticated()
                         .requestMatchers("/api/getUserInfo").fullyAuthenticated()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);

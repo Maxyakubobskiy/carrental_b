@@ -1,5 +1,6 @@
 package carrental.carrental_b.models;
 
+import carrental.carrental_b.roles.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -26,7 +27,10 @@ public class User {
     private LocalDate dateOfBirth;
     private String firstName;
     private String lastName;
+    private boolean locked ;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, orphanRemoval = true)
     @JsonManagedReference
@@ -46,5 +50,4 @@ public class User {
         this.firstName = firstName;
         this.lastName = lastName;
     }
-
 }

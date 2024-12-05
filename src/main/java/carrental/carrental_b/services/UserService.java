@@ -7,11 +7,14 @@ import carrental.carrental_b.models.Order;
 import carrental.carrental_b.models.User;
 import carrental.carrental_b.repository.CarRepository;
 import carrental.carrental_b.repository.UserRepository;
+import carrental.carrental_b.roles.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -36,6 +39,8 @@ public class UserService {
                 registerDto.getFirstName(),
                 registerDto.getLastName()
         );
+        user.setRole(Role.ROLE_USER);
+        user.setLocked(false);
         try {
             userRepository.save(user);
         } catch (Exception e) {
@@ -54,6 +59,13 @@ public class UserService {
 
     public User getUserInfo(String username) {
         return userRepository.findByUsername(username).orElse(null);
+    }
+    public ResponseEntity<?> getInfoResponse(String username) {
+        User user = getUserInfo(username);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(new UserDto(user));
     }
 
     public boolean updateUser(String username, UserDto userDto) {
@@ -79,8 +91,17 @@ public class UserService {
         return false;
     }
 
-    public boolean deletUser(String name) {
+    public boolean deleteUser(String name) {
         User user = userRepository.findByUsername(name).orElse(null);
+        return deleteUserByObject(user);
+    }
+
+    public boolean deleteUser(Long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        return deleteUserByObject(user);
+    }
+
+    private boolean deleteUserByObject(User user) {
         if (user == null) {
             return false;
         }
@@ -105,4 +126,29 @@ public class UserService {
                 (userWithSameEmail != null && !userWithSameEmail.getUserId().equals(currentUser.getUserId()));
     }
 
+    public List<User> getAllUsers() {
+        return userRepository.findAll().stream()
+                .filter(user -> !Role.ROLE_ADMIN.equals(user.getRole()))
+                .collect(Collectors.toList());
+    }
+
+    public boolean blockUser(Long userId) {
+        User user =  userRepository.findById(userId).orElse(null);
+        if (user == null || user.isLocked()) {
+            return false;
+        }
+        user.setLocked(true);
+        userRepository.save(user);
+        return true;
+    }
+
+    public boolean unblockUser(Long userId) {
+        User user =  userRepository.findById(userId).orElse(null);
+        if (user == null || !user.isLocked()) {
+            return false;
+        }
+        user.setLocked(false);
+        userRepository.save(user);
+        return true;
+    }
 }

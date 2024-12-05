@@ -4,10 +4,13 @@ import carrental.carrental_b.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import java.util.Date;
+import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import io.jsonwebtoken.security.Keys;
 
@@ -15,6 +18,7 @@ import io.jsonwebtoken.security.Keys;
 public class JwtUtils {
 
     private final UserRepository userRepository;
+
     @Value("${jwt.secret}")
     public String secret;
 
@@ -23,6 +27,7 @@ public class JwtUtils {
 
     private SecretKey key;
 
+    @Autowired
     public JwtUtils(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
@@ -47,6 +52,9 @@ public class JwtUtils {
 
         return Jwts.builder()
                 .subject(user.getUsername())
+                .claim("roles", user.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .collect(Collectors.toSet()))
                 .issuedAt(new Date())
                 .expiration(expireDate)
                 .signWith(key)

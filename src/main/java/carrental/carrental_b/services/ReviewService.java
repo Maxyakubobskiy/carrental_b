@@ -7,6 +7,7 @@ import carrental.carrental_b.models.Review;
 import carrental.carrental_b.models.User;
 import carrental.carrental_b.repository.CarRepository;
 import carrental.carrental_b.repository.ReviewRepository;
+import carrental.carrental_b.roles.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -64,8 +65,10 @@ public class ReviewService {
         if (review == null) {
             return false;
         }
-        if (!review.getUser().getUserId().equals(user.getUserId())) {
-            return false;
+        if (user.getRole().equals(Role.ROLE_USER)) {
+            if (!review.getUser().getUserId().equals(user.getUserId())) {
+                return false;
+            }
         }
         try {
             reviewRepository.delete(review);
