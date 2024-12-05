@@ -1,7 +1,6 @@
 package carrental.carrental_b.services;
 
-import carrental.carrental_b.DTO.CarDto;
-import carrental.carrental_b.DTO.RentDto;
+import carrental.carrental_b.DTO.*;
 import carrental.carrental_b.models.*;
 import carrental.carrental_b.repository.CarRepository;
 import carrental.carrental_b.repository.CardRepository;
@@ -13,6 +12,7 @@ import carrental.carrental_b.filterCriteria.FilterCriteria;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,6 +38,64 @@ public class CarService {
                 .sorted(Comparator.comparing(car -> !car.isAvailable()))
                 .collect(Collectors.toList());
     }
+
+    public List<CarNoAvailDto> getNoAvailCars() {
+        // Отримання списку машин, де available == false
+        return carRepository.findAllByAvailable(false).stream()
+                .map(car -> {
+                    // Створення CarNoAvailDto
+                    CarNoAvailDto dto = new CarNoAvailDto(
+                            car.getCarId(),
+                            car.getBrand(),
+                            car.getModel(),
+                            car.getBodyType(),
+                            car.getEngineCapacity(),
+                            car.getFuelType(),
+                            car.getYear()
+                    );
+
+                    // Знаходження замовлення зі статусом "ACTIVE" та його перетворення
+                    if (car.getOrders() != null && !car.getOrders().isEmpty()) {
+                        car.getOrders().stream()
+                                .filter(order -> "ACTIVE".equalsIgnoreCase(order.getStatus())) // Фільтрація за статусом
+                                .findFirst() // Отримання першого знайденого замовлення
+                                .ifPresent(activeOrder -> {
+                                    // Перетворення знайденого замовлення у OrderDto
+                                    OrderDto orderDto = new OrderDto(
+                                            activeOrder.getOrderId(),
+                                            activeOrder.getStartDate(),
+                                            activeOrder.getEndDate(),
+                                            activeOrder.getStatus(),
+                                            activeOrder.getUser().getUserId(),
+                                            activeOrder.getUser().getUsername(),
+                                            activeOrder.getUser().getFirstName(),
+                                            activeOrder.getUser().getLastName()
+                                    );
+                                    if (activeOrder.getPayments() != null && !activeOrder.getPayments().isEmpty()) {
+                                        activeOrder.getPayments().stream()
+                                                .filter(payment -> Objects.equals(activeOrder.getOrderId(), payment.getOrder().getOrderId()))
+                                                .findFirst()
+                                                .ifPresent(payment -> {
+                                                    PaymentDto paymentDto = new PaymentDto(
+                                                            payment.getPaymentId(),
+                                                            payment.getType(),
+                                                            payment.getAmount(),
+                                                            payment.getDateTime(),
+                                                            payment.getStatus()
+                                                    );
+                                                    orderDto.setPayment(paymentDto);
+                                                });
+                                    }
+                                    // Встановлення в DTO
+                                    dto.setOrder(orderDto);
+                                });
+                    }
+
+                    return dto;
+                })
+                .collect(Collectors.toList()); // Завершення потоку
+    }
+
 
     public List<Car> filterCars(FilterCriteria filterCriteria) {
         return getAllCars().stream()
@@ -150,5 +208,13 @@ public class CarService {
                 true
         );
     }
+
+    public boolean changeCarAvailability(Long carId) {
+        Car car = carRepository.findById(carId).orElseThrow();
+        car.setAvailable(!car.getAvailable());
+        carRepository.save(car);
+        return car.getAvailable();
+    }
+
 
 }

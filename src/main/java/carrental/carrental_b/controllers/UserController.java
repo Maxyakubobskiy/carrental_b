@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -26,11 +27,15 @@ public class UserController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        User user = userService.getUserInfo(principal.getName());
-        if (user == null) {
-            return ResponseEntity.notFound().build();
+        return userService.getInfoResponse(principal.getName());
+    }
+    @GetMapping("/getAllUsers")
+    public ResponseEntity<?> getAllUsers() {
+        List<User> userList = userService.getAllUsers();
+        if (userList.isEmpty()) {
+            return ResponseEntity.badRequest().build();
         }
-        return ResponseEntity.ok(new UserDto(user));
+        return ResponseEntity.ok(userList);
     }
 
     @GetMapping("/user-id")
@@ -64,7 +69,7 @@ public class UserController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (userService.deletUser(principal.getName())) {
+        if (userService.deleteUser(principal.getName())) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();

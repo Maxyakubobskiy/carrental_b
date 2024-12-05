@@ -8,14 +8,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Component
-public class DatabaseInitializer implements CommandLineRunner {
+//@Component
+public class DatabaseInitializer //implements CommandLineRunner
+{
 
-    @PersistenceContext
+//    @PersistenceContext
     private EntityManager entityManager;
 
-    @Override
-    @Transactional
+//    @Override
+//    @Transactional
     public void run(String... args) {
 
         List<String> carsqlQueries = List.of(

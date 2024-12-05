@@ -58,7 +58,6 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         User user = userService.getUserInfo(principal.getName());
-
         if (reviewService.deleteReview(reviewId,user))
             return ResponseEntity.ok().build();
         else

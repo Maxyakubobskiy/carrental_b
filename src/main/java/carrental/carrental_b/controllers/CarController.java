@@ -1,6 +1,7 @@
 package carrental.carrental_b.controllers;
 
 import carrental.carrental_b.DTO.CarDto;
+import carrental.carrental_b.DTO.CarNoAvailDto;
 import carrental.carrental_b.DTO.RentDto;
 import carrental.carrental_b.filterCriteria.FilterCriteria;
 import carrental.carrental_b.models.Car;
@@ -36,7 +37,14 @@ public class CarController {
         }
         return ResponseEntity.ok(cars);
     }
-
+    @GetMapping("/list-noavail-cars")
+    public ResponseEntity<?>getNoAvailCars() {
+        List<CarNoAvailDto> cars = carService.getNoAvailCars();
+        if(cars.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(cars);
+    }
     @PostMapping("/filterCars")
     public ResponseEntity<?> filterCars(@RequestBody FilterCriteria criteria) {
         List<Car> cars = carService.filterCars(criteria);
