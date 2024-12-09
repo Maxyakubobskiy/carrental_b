@@ -47,7 +47,7 @@ public class OrderService {
         LocalDateTime startDateTime = dateFrom.atStartOfDay();
         LocalDateTime endDateTime = dateTo.atTime(23, 59, 59);
 
-        List<Payment> payments = paymentRepository.findPaymentsByPeriod(startDateTime, endDateTime);
+        List<Payment> payments = paymentRepository.findPaymentsByPeriod(startDateTime, endDateTime).stream().filter(payment -> payment.getOrder().getStatus().equalsIgnoreCase("INACTIVE")).toList();
         return payments.stream()
                 .mapToDouble(Payment::getAmount)
                 .sum();

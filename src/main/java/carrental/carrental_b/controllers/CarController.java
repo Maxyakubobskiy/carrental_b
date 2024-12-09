@@ -3,7 +3,8 @@ package carrental.carrental_b.controllers;
 import carrental.carrental_b.DTO.CarDto;
 import carrental.carrental_b.DTO.CarNoAvailDto;
 import carrental.carrental_b.DTO.RentDto;
-import carrental.carrental_b.filterCriteria.FilterCriteria;
+import carrental.carrental_b.criteria.FilterCriteria;
+import carrental.carrental_b.criteria.SortCriteria;
 import carrental.carrental_b.models.Car;
 import carrental.carrental_b.models.User;
 import carrental.carrental_b.services.CarService;
@@ -48,6 +49,15 @@ public class CarController {
     @PostMapping("/filterCars")
     public ResponseEntity<?> filterCars(@RequestBody FilterCriteria criteria) {
         List<Car> cars = carService.filterCars(criteria);
+        if (cars.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }else {
+            return ResponseEntity.ok(cars);
+        }
+    }
+    @PostMapping("/sortCars")
+    public ResponseEntity<?> sortCars(@RequestBody SortCriteria criteria) {
+        List<Car> cars = carService.sortCars(criteria);
         if (cars.isEmpty()) {
             return ResponseEntity.noContent().build();
         }else {
