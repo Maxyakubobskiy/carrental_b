@@ -42,10 +42,16 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 } catch (ExpiredJwtException e) {
                     System.out.println(e.getMessage());
                 }
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (username != null) {
                     userDetails = customUserDetailsService.loadUserByUsername(username);
-                    authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    if (SecurityContextHolder.getContext().getAuthentication() == null){
+                        authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    }else {
+                        if (!userDetails.isAccountNonLocked()){
+                            return;
+                        }
+                    }
                 }
             }
         }catch (Exception e) {

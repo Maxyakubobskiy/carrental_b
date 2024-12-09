@@ -1,6 +1,7 @@
 package carrental.carrental_b.services;
 
 import carrental.carrental_b.DTO.*;
+import carrental.carrental_b.criteria.SortCriteria;
 import carrental.carrental_b.models.*;
 import carrental.carrental_b.repository.CarRepository;
 import carrental.carrental_b.repository.CardRepository;
@@ -8,7 +9,9 @@ import carrental.carrental_b.repository.OrderRepository;
 import carrental.carrental_b.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import carrental.carrental_b.filterCriteria.FilterCriteria;
+import carrental.carrental_b.criteria.FilterCriteria;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -22,14 +25,17 @@ public class CarService {
     private final PaymentRepository paymentRepository;
     private final CardRepository cardRepository;
     private final ReviewService reviewService;
+    private final EmailService emailService;
+    private final String subject = "Оренда авто успішно підтверджена";
 
     @Autowired
-    public CarService(CarRepository carRepository, OrderRepository orderRepository, PaymentRepository paymentRepository, CardRepository cardRepository, ReviewService reviewService) {
+    public CarService(CarRepository carRepository, OrderRepository orderRepository, PaymentRepository paymentRepository, CardRepository cardRepository, ReviewService reviewService, EmailService emailService) {
         this.carRepository = carRepository;
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
         this.cardRepository = cardRepository;
         this.reviewService = reviewService;
+        this.emailService = emailService;
     }
 
     public List<Car> getAllCars() {
@@ -96,7 +102,27 @@ public class CarService {
                 .collect(Collectors.toList()); // Завершення потоку
     }
 
-
+    public List<Car> sortCars(SortCriteria criteria) {
+        List<Car> cars = getAllCars();
+        
+        Comparator<Car> comparator = null;
+        if ("price-asc".equalsIgnoreCase(criteria.getSortOption())) {
+            comparator = Comparator.comparing(Car::getPrice);
+        } else if ("price-desc".equalsIgnoreCase(criteria.getSortOption())) {
+            comparator = Comparator.comparing(Car::getPrice).reversed();
+        } else if ("year-asc".equalsIgnoreCase(criteria.getSortOption())) {
+            comparator = Comparator.comparing(Car::getYear);
+        } else if ("year-desc".equalsIgnoreCase(criteria.getSortOption())) {
+            comparator = Comparator.comparing(Car::getYear).reversed();
+        }
+        if (comparator == null) {
+            return cars;
+        }
+        return cars.stream()
+                .sorted(comparator)
+                .collect(Collectors.toList());
+    }
+    
     public List<Car> filterCars(FilterCriteria filterCriteria) {
         return getAllCars().stream()
                 .filter(car -> filterByFuelType(car, filterCriteria.getFuelTypes()))
@@ -167,8 +193,34 @@ public class CarService {
         }catch (Exception e) {
             return false;
         }
-
+        String text = generateRentalEmailText(user.getFirstName(),user.getLastName(),car.getBrand(),order.getStartDate(),order.getEndDate(),payment.getAmount());
+        new Thread(()->{
+            if (emailService != null) {
+                emailService.sendEmail(user.getEmail(), subject, text);
+            }
+        }).start();
         return true;
+    }
+    private String generateRentalEmailText(String firstName, String lastName, String brand, LocalDate rentFrom, LocalDate rentTo, Double amount) {
+        return String.format(
+                """
+                        Шановний(а) %s %s,
+                        
+                        Дякуємо, що вибрали наш сервіс для оренди автомобіля! Ми з радістю підтверджуємо вашу оренду.
+                        
+                        Деталі оренди:
+                        Автомобіль: %s
+                        Дата початку оренди: %s
+                        Дата закінчення оренди: %s
+                        Ціна: %s
+                        
+                        Ми сподіваємось, що ви будете задоволені орендованим автомобілем. Якщо у вас виникли питання або вам потрібна додаткова інформація, не соромтеся звертатися до нас.
+                        
+                        Бажаємо приємної подорожі!
+                        
+                        З найкращими побажаннями,
+                        Команда Car Rental""",
+                firstName, lastName, brand, rentFrom, rentTo, amount);
     }
     private Payment createPayment(RentDto rentDto, Order order) {
         Payment payment;
@@ -217,4 +269,5 @@ public class CarService {
     }
 
 
+    
 }

@@ -39,7 +39,7 @@ public class AdminController {
         try {
             String token = authService.authenticate(loginDto.getUsername(), loginDto.getPassword(), Role.ROLE_ADMIN.name());
             return ResponseEntity.ok(token);
-        }catch (BadCredentialsException e) {
+        } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
@@ -49,11 +49,11 @@ public class AdminController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(userService.getInfoResponse(principal.getName()));
+        return userService.getInfoResponse(principal.getName());
     }
 
     @GetMapping("/availablePeriod")
-    public ResponseEntity<?> getAvailablePeriod( ){
+    public ResponseEntity<?> getAvailablePeriod() {
         LocalDate availableDate = orderService.getAvailablePeriod();
         if (availableDate == null) {
             return ResponseEntity.badRequest().build();
@@ -78,7 +78,7 @@ public class AdminController {
         if (request.getDateFrom() == null || request.getDateTo() == null) {
             return ResponseEntity.badRequest().build();
         }
-        Double totalAmount = orderService.getTotalAmountByPeriod(request.getDateFrom(),request.getDateTo());
+        Double totalAmount = orderService.getTotalAmountByPeriod(request.getDateFrom(), request.getDateTo());
         if (totalAmount == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -86,7 +86,7 @@ public class AdminController {
     }
 
     @PutMapping("/car/changeAvailability/{carId}")
-    public ResponseEntity<?> changeCarAvailability(@PathVariable Long carId){
+    public ResponseEntity<?> changeCarAvailability(@PathVariable Long carId) {
         if (carId == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -95,7 +95,7 @@ public class AdminController {
     }
 
     @PostMapping("/cancelRent/{orderId}")
-    public ResponseEntity<?> cancelRent(@PathVariable Long orderId){
+    public ResponseEntity<?> cancelRent(@PathVariable Long orderId) {
         if (orderId == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -104,7 +104,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/deleteRent/{orderId}")
-    public ResponseEntity<?> deleteRent(@PathVariable Long orderId){
+    public ResponseEntity<?> deleteRent(@PathVariable Long orderId) {
         if (orderId == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -113,36 +113,36 @@ public class AdminController {
     }
 
     @PostMapping("/lockUser/{userId}")
-    public ResponseEntity<?> lockUser(@PathVariable Long userId){
+    public ResponseEntity<?> lockUser(@PathVariable Long userId) {
         if (userId == null) {
             return ResponseEntity.badRequest().build();
         }
         boolean result = userService.blockUser(userId);
-        if(result){
+        if (result) {
             return ResponseEntity.ok(true);
         }
         return ResponseEntity.badRequest().build();
     }
 
     @PostMapping("/unblockUser/{userId}")
-    public ResponseEntity<?> unblockUser(@PathVariable Long userId){
+    public ResponseEntity<?> unblockUser(@PathVariable Long userId) {
         if (userId == null) {
             return ResponseEntity.badRequest().build();
         }
         boolean result = userService.unblockUser(userId);
-        if(result){
+        if (result) {
             return ResponseEntity.ok(true);
         }
         return ResponseEntity.badRequest().build();
     }
 
     @DeleteMapping("/deleteUser/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId){
+    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
         if (userId == null) {
             return ResponseEntity.badRequest().build();
         }
         boolean result = userService.deleteUser(userId);
-        if(result){
+        if (result) {
             return ResponseEntity.ok(true);
         }
         return ResponseEntity.badRequest().build();

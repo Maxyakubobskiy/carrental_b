@@ -19,6 +19,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query(value = "SELECT start_date AS day, COUNT(*) AS rental_count " +
             "FROM orders " +
             "WHERE start_date BETWEEN :startDate AND :endDate " +
+            "AND status = 'INACTIVE' " +
             "GROUP BY start_date " +
             "ORDER BY start_date", nativeQuery = true)
     List<Map<String,Object>> findRentalsByDay(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);

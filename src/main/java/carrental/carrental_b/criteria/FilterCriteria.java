@@ -1,4 +1,4 @@
-package carrental.carrental_b.filterCriteria;
+package carrental.carrental_b.criteria;
 
 import lombok.Data;
 
